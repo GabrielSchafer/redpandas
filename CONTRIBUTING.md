@@ -3,6 +3,22 @@
 Conventions for branches, commits and pull requests in this repo. They are short on purpose —
 everything here is enforceable by reading a diff.
 
+## Setup
+
+The hooks in `.githooks/` enforce the rules below. Enable them once per clone:
+
+```bash
+make hooks   # git config core.hooksPath .githooks
+```
+
+| Hook | Blocks |
+| --- | --- |
+| `commit-msg` | Subject without a tag, or longer than 72 characters |
+| `pre-push` | Direct push to `main`, force push, branch name off convention |
+
+The `main` block is an escape hatch, not a wall: `ALLOW_MAIN_PUSH=1 git push` when you
+genuinely need it (repo bootstrap, a revert that cannot wait).
+
 ## Branches
 
 `main` is protected by convention: never commit to it directly, never force push it.
