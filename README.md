@@ -11,7 +11,7 @@ using a trading bank as the domain: accounts, cash, positions, orders, matching 
 | Broker | Redpanda (single node, `docker compose`) |
 | Client | `confluent-kafka` (librdkafka) |
 | API | FastAPI + Uvicorn |
-| State | In-memory, rebuilt from topics on startup |
+| State | In-memory, built from the log on first run |
 | Tests | pytest (pure unit, no broker needed) |
 
 ## Architecture
@@ -28,8 +28,17 @@ trading.trades.events     ---> [ledger-worker] ---> trading.ledger.events
                        [api projection thread] -> read models (GET endpoints)
 ```
 
-Each worker is an independent consumer group with its own in-memory state, rebuilt by
-replaying its topics from the earliest offset. No database: the log is the source of truth.
+Each worker is an independent consumer group with its own in-memory state. On its first run a
+group has no committed offsets, so it reads its topics from the earliest one and builds state from
+the whole history. No database: the log is the source of truth.
+
+Offsets are committed after each handled message, so a **restart resumes where the group stopped**
+— with an empty in-memory state. Until a snapshot mechanism exists, rebuilding means rewinding the
+group explicitly:
+
+```bash
+docker exec -it redpanda rpk group seek risk-worker-group --to start
+```
 
 | Service | Consumes | Produces | Responsibility |
 | --- | --- | --- | --- |
@@ -136,14 +145,16 @@ curl -X POST localhost:8000/orders -H 'content-type: application/json' \
 
 Deliberately simplified — the focus is the streaming architecture, not exchange realism.
 
-- State is in-memory; restarting a worker replays the topics from the beginning.
+- State is in-memory and lost on restart. The group resumes from its committed offsets instead of
+  replaying, so a restarted worker is out of sync until its offsets are rewound (see above). The
+  fix is snapshots, listed below.
 - Ordering is guaranteed per partition (key = account or symbol), not across topics.
 - Fill events are emitted for the taker; makers are updated from `trade.executed`.
 - No fees, no auth, no persistence, no schema registry yet.
 
 ## Next steps
 
-- Compacted snapshot topics so workers do not replay full history.
+- Compacted snapshot topics, so a worker restores state on restart instead of replaying history.
 - Schema Registry with Avro/Protobuf instead of plain JSON.
 - Dead-letter handling on `trading.dead.letter`.
 - Market data topic with order book snapshots.
