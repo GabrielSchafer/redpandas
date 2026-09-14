@@ -150,6 +150,10 @@ in Redpanda Console by filtering on it.
 - Producers: idempotent, `acks=all`.
 - Consumers: manual commit after the handler succeeds — at-least-once, so handlers must
   tolerate reprocessing (the mock is not fully idempotent yet; see Next steps).
+- Offsets and state: a committed offset means "handled", not "still known". State lives only in the
+  worker's memory, so a restart resumes from the committed offset with nothing loaded. A worker is
+  only consistent again after `rpk group seek <group> --to start` rewinds it through the history.
+  Snapshots on a compacted topic would replace this manual step.
 - Partitioning: account-keyed topics keep per-account ordering; symbol-keyed topics keep the
   book consistent per instrument, which is why the matching worker must own one symbol set.
 
