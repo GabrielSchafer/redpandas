@@ -1,0 +1,33 @@
+#!/bin/sh
+# Blocks direct pushes to main, force pushes and off-convention branch names.
+
+protected="main"
+zero="0000000000000000000000000000000000000000"
+prefixes='feat|fix|refactor|docs|test|chore|perf'
+
+while read -r _local_ref local_sha remote_ref remote_sha; do
+	[ "$local_sha" = "$zero" ] && continue
+
+	branch=${remote_ref#refs/heads/}
+
+	if [ "$branch" = "$protected" ] && [ "$ALLOW_MAIN_PUSH" != "1" ]; then
+		echo "pre-push: direct push to $protected is blocked." >&2
+		echo "  open a pull request, or run: ALLOW_MAIN_PUSH=1 git push" >&2
+		exit 1
+	fi
+
+	if [ "$remote_sha" != "$zero" ] && ! git merge-base --is-ancestor "$remote_sha" "$local_sha"; then
+		echo "pre-push: $branch would be force updated, rewriting remote history." >&2
+		echo "  push a new commit instead." >&2
+		exit 1
+	fi
+
+	if [ "$branch" != "$protected" ] && ! printf '%s' "$branch" | grep -Eq "^($prefixes)/[a-z0-9_]+$"; then
+		echo "pre-push: branch name '$branch' is off convention." >&2
+		echo "  expected: <prefix>/<short_name>, e.g. feat/order_cancel_flow" >&2
+		echo "  prefixes: $(printf '%s' "$prefixes" | tr '|' ' ')" >&2
+		exit 1
+	fi
+done
+
+exit 0

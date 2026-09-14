@@ -1,0 +1,25 @@
+#!/bin/sh
+# Enforces the commit convention: "[tag] imperative summary", 72 chars max.
+
+subject=$(head -n 1 "$1")
+tags='feat|fix|refactor|docs|test|chore|perf'
+
+case "$subject" in
+	"Merge "*|"Revert "*|"fixup!"*|"squash!"*) exit 0 ;;
+esac
+
+if ! printf '%s' "$subject" | grep -Eq "^\[($tags)\] .+"; then
+	echo "commit-msg: subject must start with a tag." >&2
+	echo "  got:      $subject" >&2
+	echo "  expected: [feat] emit order.cancelled from the matching worker" >&2
+	echo "  tags:     $(printf '%s' "$tags" | tr '|' ' ')" >&2
+	exit 1
+fi
+
+if [ ${#subject} -gt 72 ]; then
+	echo "commit-msg: subject is ${#subject} chars, limit is 72." >&2
+	echo "  move the detail to the body, after a blank line." >&2
+	exit 1
+fi
+
+exit 0

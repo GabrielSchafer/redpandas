@@ -1,6 +1,9 @@
 PYTHON ?= python3
 export PYTHONPATH := src
 
+hooks:
+	git config core.hooksPath .githooks
+
 up:
 	docker compose up -d
 
@@ -28,4 +31,4 @@ seed:
 test:
 	$(PYTHON) -m pytest -q
 
-.PHONY: up down topics api worker-ledger worker-risk worker-matching seed test
+.PHONY: hooks up down topics api worker-ledger worker-risk worker-matching seed test
