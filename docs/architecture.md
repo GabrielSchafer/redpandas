@@ -127,6 +127,35 @@ stateDiagram-v2
 | `ledger.entry_recorded` | `account_id`, `trade_id`, `symbol`, `currency`, `amount`, `type` |
 | `position.updated` | `account_id`, `symbol`, `quantity`, `reserved`, `average_price` |
 
+## Trigger and reaction
+
+Who reacts to what, what comes out of it, and what you see change. This is the table to keep
+open while watching `make monitor`.
+
+| Trigger | Reacts | Emits | Visible effect |
+| --- | --- | --- | --- |
+| `account.open_requested` | ledger-worker | `account.opened` | New row in ACCOUNTS, all zeros |
+| `account.deposit_requested` | ledger-worker | `account.funds_deposited` | `cash` goes up |
+| `account.withdraw_requested` | ledger-worker | `account.funds_withdrawn`, or `account.command_rejected` | `cash` goes down, or nothing changes |
+| `account.credit_asset_requested` | ledger-worker | `account.assets_credited` | Position column goes up |
+| `order.requested` | risk-worker | `order.accepted` or `order.rejected` | `cash` drops and `reserved` rises, or a red line in the tape |
+| `order.accepted` (no cross) | matching-worker | nothing | A new level appears in BOOK |
+| `order.accepted` (crosses) | matching-worker | `trade.executed` per fill, plus `order.filled` or `order.partially_filled` | Green line in the tape, `last traded` moves, level leaves the book |
+| `trade.executed` | ledger-worker | `ledger.entry_recorded` ×2, `position.updated` ×2 | Buyer's `reserved` clears, seller's `cash` rises, positions swap |
+| `trade.executed` | risk-worker | nothing | Nothing — it only updates its own replica |
+| `order.cancel_requested` | matching-worker | `order.cancelled` | Level leaves the book |
+| `order.cancelled` | risk-worker | nothing | `reserved` returns to `cash` |
+| any event | api projection | nothing | The GET endpoints start answering with the new state |
+
+Two behaviours that look like bugs and are not:
+
+- **An accepted order that does not cross emits nothing else.** It rests in the book and the log
+  goes quiet until prices meet. Silence in `trades.events` is the correct state, not a stall.
+- **A position never moves on acceptance, only on settlement.** Between `order.accepted` and
+  `trade.executed` the money sits in `reserved`: neither spent nor available. A system built on a
+  database usually hides that intermediate state inside a transaction; here it is a field you can
+  watch.
+
 ## Envelope
 
 Every message is JSON with the same envelope:

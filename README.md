@@ -55,7 +55,7 @@ docker exec -it redpanda rpk group seek risk-worker-group --to start
 4. `ledger-worker` settles the trade and emits `ledger.entry_recorded` and `position.updated`.
 5. The API projection consumes every event topic and serves `GET /accounts/{id}`, `/orders/{id}`, `/market/trades`.
 
-Diagrams (mermaid) and full event catalog: [docs/architecture.md](docs/architecture.md).
+Diagrams, full event catalog and a trigger-to-reaction table: [docs/architecture.md](docs/architecture.md).
 
 ## Layout
 
