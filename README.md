@@ -68,34 +68,42 @@ src/trading/
   services/           ledger, settlement, risk, order book, matching engine
   store/              read-model projections
   workers/            ledger, risk and matching workers (+ CLI runner)
+  monitor/            state and renderer for the terminal dashboard
   api/                FastAPI app, routes, projection stream
-scripts/              topic bootstrap and demo seed
+scripts/              topic bootstrap, seed, terminal monitor, traffic bots
 tests/                unit tests for matching, ledger and projections
 ```
 
 ## Running
+
+Everything in Docker — broker, console, API and the three workers:
+
+```bash
+make up        # http://localhost:8080 console · http://localhost:8000/docs api
+```
+
+Watch it run, two terminals:
+
+```bash
+make monitor   # live terminal view of every topic, book and balance
+make traffic   # three bots, one order every 1.5s
+```
+
+The panel and a five-minute walkthrough are described in [docs/demo.md](docs/demo.md).
+
+For development without containers, run the broker only and start each process yourself:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
 cp .env.example .env
 
-make up        # Redpanda + Console on http://localhost:8080
-make topics    # create the topics
-```
-
-Each process in its own terminal:
-
-```bash
+make broker    # only redpanda + console
+make topics
 make worker-ledger
 make worker-risk
 make worker-matching
-make api       # http://localhost:8000/docs
-```
-
-Demo data:
-
-```bash
+make api
 make seed      # 2 accounts, deposits, seller inventory, crossing orders
 make test
 ```

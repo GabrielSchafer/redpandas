@@ -5,7 +5,13 @@ hooks:
 	git config core.hooksPath .githooks
 
 up:
-	docker compose up -d
+	docker compose up -d --build
+
+broker:
+	docker compose up -d redpanda console
+
+logs:
+	docker compose logs -f api ledger-worker risk-worker matching-worker
 
 down:
 	docker compose down -v
@@ -28,7 +34,13 @@ worker-matching:
 seed:
 	$(PYTHON) scripts/seed.py
 
+monitor:
+	$(PYTHON) scripts/monitor.py
+
+traffic:
+	$(PYTHON) scripts/traffic.py
+
 test:
 	$(PYTHON) -m pytest -q
 
-.PHONY: hooks up down topics api worker-ledger worker-risk worker-matching seed test
+.PHONY: hooks up broker logs down topics api worker-ledger worker-risk worker-matching seed monitor traffic test
