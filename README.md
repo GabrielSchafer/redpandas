@@ -89,7 +89,8 @@ make monitor   # live terminal view of every topic, book and balance
 make traffic   # three bots, one order every 1.5s
 ```
 
-The panel and a five-minute walkthrough are described in [docs/demo.md](docs/demo.md).
+The panel and a five-minute walkthrough are described in [docs/demo.md](docs/demo.md);
+`docs/roteiro-estudo.md` is a thirty-minute guide to studying and presenting the project.
 
 For development without containers, run the broker only and start each process yourself:
 
