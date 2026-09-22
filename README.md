@@ -9,7 +9,7 @@ using a trading bank as the domain: accounts, cash, positions, orders, matching 
 | Piece | Choice |
 | --- | --- |
 | Broker | Redpanda (single node, `docker compose`) |
-| Client | `confluent-kafka` (librdkafka) |
+| Client | `confluent-kafka` 2.15 (librdkafka) |
 | API | FastAPI + Uvicorn |
 | State | In-memory, built from the log on first run |
 | Tests | pytest (pure unit, no broker needed) |
@@ -92,6 +92,8 @@ make traffic   # three bots, one order every 1.5s
 The panel and a five-minute walkthrough are described in [docs/demo.md](docs/demo.md).
 
 For development without containers, run the broker only and start each process yourself:
+
+Python 3.11 to 3.13 — the client ships wheels for all three, so nothing is compiled locally.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
