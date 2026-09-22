@@ -1,5 +1,14 @@
 name: redpanda-trading-mock
 
+x-app: &app
+  build: .
+  environment:
+    REDPANDA_BROKERS: redpanda:9092
+  depends_on:
+    redpanda:
+      condition: service_healthy
+  restart: unless-stopped
+
 services:
   redpanda:
     image: redpandadata/redpanda:v24.2.7
@@ -39,3 +48,25 @@ services:
       KAFKA_BROKERS: redpanda:9092
       KAFKA_SCHEMAREGISTRY_ENABLED: "true"
       KAFKA_SCHEMAREGISTRY_URLS: http://redpanda:8081
+
+  api:
+    <<: *app
+    container_name: trading-api
+    command: python -m uvicorn trading.api.app:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+
+  ledger-worker:
+    <<: *app
+    container_name: ledger-worker
+    command: python -m trading.workers ledger
+
+  risk-worker:
+    <<: *app
+    container_name: risk-worker
+    command: python -m trading.workers risk
+
+  matching-worker:
+    <<: *app
+    container_name: matching-worker
+    command: python -m trading.workers matching
