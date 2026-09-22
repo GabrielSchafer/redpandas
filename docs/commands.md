@@ -37,6 +37,8 @@ First `make up` pulls images and builds the Python image — give it a couple of
 | `python scripts/traffic.py --interval 2.5` | Slower flow, easier to read on video |
 | `python scripts/traffic.py --orders 20` | Stops after 20 orders |
 | `python scripts/traffic.py --reject-rate 0.2` | More rejections, to show risk refusing orders |
+| `python scripts/traffic.py --accounts 10` | Funds 10 traders on start instead of 5 |
+| `python scripts/traffic.py --join-every 8` | Opens one more account every 8 orders, live |
 | `make seed` | One-shot: two accounts and a single crossing pair |
 
 ## Poke at the API
