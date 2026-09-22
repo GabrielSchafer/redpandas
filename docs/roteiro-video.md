@@ -11,7 +11,7 @@ as legendas sugeridas e o vocabulário para escrever a descrição ou gravar uma
 | Painéis | Monitor ocupando ~70% da tela, tráfego embaixo |
 | Prompt | `export PS1="$ "` |
 | Log limpo | `make down && make up`, esperar os 6 containers |
-| Ritmo | `python scripts/traffic.py --interval 2.5` |
+| Ritmo | `python scripts/traffic.py --interval 2.5 --accounts 6 --join-every 10` |
 | Gravação | QuickTime (janela do terminal) ou `asciinema rec` |
 
 Deixe os comandos no histórico para não digitar ao vivo.
@@ -22,9 +22,10 @@ Deixe os comandos no histórico para não digitar ao vivo.
 | --- | --- | --- | --- |
 | 0:00 | Lista de containers | `docker compose ps` | "6 processos: 1 broker, 1 API, 3 workers" |
 | 0:20 | Painel vazio, contadores em zero | `make monitor` | "Nenhum evento ainda — o painel é o log" |
-| 0:50 | Bots começam a publicar | `make traffic` | "3 bots enviando 1 ordem a cada 2,5s" |
+| 0:50 | Bots começam a publicar | `python scripts/traffic.py --interval 2.5 --accounts 6 --join-every 10` | "6 contas abertas, 1 ordem a cada 2,5s" |
 | 1:10 | Contadores subindo em cascata | — | "orders.commands → orders.events → trades.events" |
 | 1:40 | Fita rolando | — | "Cada linha é um evento real no log" |
+| 1:55 | Nova conta aparece no painel | — | "Conta nova entra no sistema em tempo real" |
 | 2:10 | Fita, linhas verdes | — | "Verde = negócio executado" |
 | 2:30 | Painel BOOK | — | "Book reconstruído: venda em cima, compra embaixo" |
 | 2:50 | Painel ACCOUNTS, coluna `reserved` | — | "Ordem aceita trava o dinheiro, não gasta" |

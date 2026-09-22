@@ -19,6 +19,7 @@ SHOW_CURSOR = "\033[?25h"
 
 LEFT_WIDTH = 46
 GAP = 4
+MAX_ACCOUNTS = 8
 
 
 def paint(text: str, color: str) -> str:
@@ -102,7 +103,8 @@ def accounts_pane(state, width: int) -> list[str]:
     symbol = state.symbol
     head = cell("ACCOUNTS", 16) + cell("cash", 14, ">") + cell("reserved", 13, ">") + cell(symbol or "position", 10, ">")
     lines = [paint(head, BOLD)]
-    for account_id, account in sorted(state.projection.accounts.items()):
+    accounts = sorted(state.projection.accounts.items())
+    for account_id, account in accounts[:MAX_ACCOUNTS]:
         balance = next(iter(account["balances"].values()), {"available": "0", "reserved": "0"})
         position = account["positions"].get(symbol, {}) if symbol else {}
         lines.append(
@@ -111,6 +113,9 @@ def accounts_pane(state, width: int) -> list[str]:
             + cell(amount(balance["reserved"]), 13, ">")
             + cell(qty(position.get("quantity", "0")), 10, ">")
         )
+    hidden = len(accounts) - MAX_ACCOUNTS
+    if hidden > 0:
+        lines.append(paint(f"  … and {hidden} more accounts", DIM))
     if len(lines) == 1:
         lines.append(paint("  waiting for accounts…", DIM))
     return lines
